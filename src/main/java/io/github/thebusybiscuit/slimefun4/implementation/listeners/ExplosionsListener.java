@@ -1,5 +1,6 @@
 package io.github.thebusybiscuit.slimefun4.implementation.listeners;
 
+import com.molean.folia.adapter.SchedulerContext;
 import com.xzavier0722.mc.plugin.slimefun4.storage.callback.IAsyncReadCallback;
 import com.xzavier0722.mc.plugin.slimefun4.storage.controller.SlimefunBlockData;
 import com.xzavier0722.mc.plugin.slimefun4.storage.controller.SlimefunUniversalBlockData;
@@ -10,9 +11,9 @@ import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
 import io.github.thebusybiscuit.slimefun4.core.attributes.WitherProof;
 import io.github.thebusybiscuit.slimefun4.core.handlers.BlockBreakHandler;
 import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.bukkit.ExplosionResult;
@@ -87,8 +88,8 @@ public class ExplosionsListener implements Listener {
                                 if (blockData instanceof SlimefunBlockData sbd) {
                                     controller.loadBlockDataAsync(sbd, new IAsyncReadCallback<>() {
                                         @Override
-                                        public boolean runOnMainThread() {
-                                            return true;
+                                        public SchedulerContext getContext() {
+                                            return SchedulerContext.of(block.getLocation());
                                         }
 
                                         @Override
@@ -99,8 +100,8 @@ public class ExplosionsListener implements Listener {
                                 } else if (blockData instanceof SlimefunUniversalBlockData ubd) {
                                     controller.loadUniversalDataAsync(ubd, new IAsyncReadCallback<>() {
                                         @Override
-                                        public boolean runOnMainThread() {
-                                            return true;
+                                        public SchedulerContext getContext() {
+                                            return SchedulerContext.of(block.getLocation());
                                         }
 
                                         @Override
@@ -123,7 +124,7 @@ public class ExplosionsListener implements Listener {
         if (handler.isExplosionAllowed(block)) {
             block.setType(Material.AIR);
 
-            List<ItemStack> drops = new ArrayList<>();
+            List<ItemStack> drops = new CopyOnWriteArrayList<>();
             handler.onExplode(block, drops);
             Slimefun.getDatabaseManager().getBlockDataController().removeBlock(block.getLocation());
 

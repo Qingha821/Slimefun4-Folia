@@ -1,5 +1,6 @@
 package io.github.thebusybiscuit.slimefun4.core.commands.subcommands;
 
+import com.molean.folia.adapter.SchedulerContext;
 import com.xzavier0722.mc.plugin.slimefun4.storage.callback.IAsyncReadCallback;
 import io.github.thebusybiscuit.slimefun4.api.player.PlayerBackpack;
 import io.github.thebusybiscuit.slimefun4.core.commands.SlimefunCommand;
@@ -99,8 +100,8 @@ class BackpackCommand extends SubCommand {
                 .getProfileDataController()
                 .getBackpacksAsync(owner.getUniqueId().toString(), new IAsyncReadCallback<>() {
                     @Override
-                    public boolean runOnMainThread() {
-                        return true;
+                    public SchedulerContext getContext() {
+                        return SchedulerContext.of(p);
                     }
 
                     @Override

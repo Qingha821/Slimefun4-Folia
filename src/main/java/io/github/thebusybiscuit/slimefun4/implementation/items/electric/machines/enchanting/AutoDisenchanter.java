@@ -1,5 +1,6 @@
 package io.github.thebusybiscuit.slimefun4.implementation.items.electric.machines.enchanting;
 
+import com.molean.folia.adapter.Folia;
 import io.github.bakedlibs.dough.inventory.InvUtils;
 import io.github.thebusybiscuit.slimefun4.api.events.AutoDisenchantEvent;
 import io.github.thebusybiscuit.slimefun4.api.items.ItemGroup;
@@ -7,6 +8,7 @@ import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItemStack;
 import io.github.thebusybiscuit.slimefun4.api.recipes.RecipeType;
 import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -14,7 +16,6 @@ import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.MachineRecipe;
 import me.mrCookieSlime.Slimefun.api.inventory.BlockMenu;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
@@ -61,8 +62,8 @@ public class AutoDisenchanter extends AbstractEnchantmentMachine {
             }
 
             // Call an event so other Plugins can modify it.
-            AutoDisenchantEvent event = new AutoDisenchantEvent(item, menu.getBlock());
-            Bukkit.getPluginManager().callEvent(event);
+            AutoDisenchantEvent event = new AutoDisenchantEvent(item);
+            Folia.getPluginManager().ce(event);
 
             if (event.isCancelled()) {
                 if (InvUtils.fitAll(menu.toInventory(), new ItemStack[] {item}, getOutputSlots())) {
@@ -85,7 +86,7 @@ public class AutoDisenchanter extends AbstractEnchantmentMachine {
 
     @ParametersAreNonnullByDefault
     private @Nullable MachineRecipe disenchant(BlockMenu menu, ItemStack item, ItemStack book) {
-        Map<Enchantment, Integer> enchantments = new HashMap<>();
+        Map<Enchantment, Integer> enchantments = Collections.synchronizedMap(new HashMap<>());
 
         if (!isEnchantmentCountAllowed(item.getEnchantments().size())) {
             showEnchantmentLimitWarning(menu);

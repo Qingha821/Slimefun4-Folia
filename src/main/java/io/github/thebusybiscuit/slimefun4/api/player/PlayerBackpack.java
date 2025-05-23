@@ -2,6 +2,7 @@ package io.github.thebusybiscuit.slimefun4.api.player;
 
 import city.norain.slimefun4.holder.SlimefunInventoryHolder;
 import city.norain.slimefun4.utils.InventoryUtil;
+import com.molean.folia.adapter.SchedulerContext;
 import com.xzavier0722.mc.plugin.slimefun4.storage.callback.IAsyncReadCallback;
 import io.github.bakedlibs.dough.common.ChatColors;
 import io.github.bakedlibs.dough.common.CommonPatterns;
@@ -48,7 +49,7 @@ public class PlayerBackpack extends SlimefunInventoryHolder {
     private int size;
     private boolean isInvalid = false;
 
-    public static void getAsync(ItemStack item, Consumer<PlayerBackpack> callback, boolean runCbOnMainThread) {
+    public static void getAsync(ItemStack item, Consumer<PlayerBackpack> callback, SchedulerContext context) {
         if (item == null || !item.hasItemMeta() || !item.getItemMeta().hasLore()) {
             return;
         }
@@ -59,8 +60,8 @@ public class PlayerBackpack extends SlimefunInventoryHolder {
                     .getProfileDataController()
                     .getBackpackAsync(bUuid.get(), new IAsyncReadCallback<>() {
                         @Override
-                        public boolean runOnMainThread() {
-                            return runCbOnMainThread;
+                        public SchedulerContext getContext() {
+                            return context;
                         }
 
                         @Override
@@ -94,8 +95,8 @@ public class PlayerBackpack extends SlimefunInventoryHolder {
                     .getBackpackAsync(
                             Bukkit.getOfflinePlayer(UUID.fromString(uuid)), number, new IAsyncReadCallback<>() {
                                 @Override
-                                public boolean runOnMainThread() {
-                                    return runCbOnMainThread;
+                                public SchedulerContext getContext() {
+                                    return context;
                                 }
 
                                 @Override

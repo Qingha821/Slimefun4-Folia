@@ -1,5 +1,6 @@
 package io.github.thebusybiscuit.slimefun4.implementation.items.multiblocks;
 
+import com.molean.folia.adapter.SchedulerContext;
 import com.xzavier0722.mc.plugin.slimefun4.storage.callback.IAsyncReadCallback;
 import io.github.bakedlibs.dough.common.ChatColors;
 import io.github.bakedlibs.dough.common.CommonPatterns;
@@ -92,8 +93,8 @@ abstract class AbstractCraftingTable extends MultiBlockMachine {
                     .getProfileDataController()
                     .getBackpackAsync(id.get(), new IAsyncReadCallback<>() {
                         @Override
-                        public boolean runOnMainThread() {
-                            return true;
+                        public SchedulerContext getContext() {
+                            return SchedulerContext.of(p);
                         }
 
                         @Override
@@ -111,8 +112,8 @@ abstract class AbstractCraftingTable extends MultiBlockMachine {
                         .getProfileDataController()
                         .getBackpackAsync(p, Integer.parseInt(id.get()), new IAsyncReadCallback<>() {
                             @Override
-                            public boolean runOnMainThread() {
-                                return true;
+                            public SchedulerContext getContext() {
+                                return SchedulerContext.of(p);
                             }
 
                             @Override

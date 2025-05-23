@@ -6,6 +6,7 @@ import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
 import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
 import io.github.thebusybiscuit.slimefun4.implementation.tasks.TickerTask;
 import io.github.thebusybiscuit.slimefun4.utils.NumberUtils;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -264,7 +265,7 @@ public class SlimefunProfiler {
 
     @Nonnull
     protected Map<String, Long> getByItem() {
-        Map<String, Long> map = new HashMap<>();
+        Map<String, Long> map = Collections.synchronizedMap(new HashMap<>());
 
         for (Map.Entry<ProfiledBlock, Long> entry : timings.entrySet()) {
             map.merge(entry.getKey().getId(), entry.getValue(), Long::sum);
@@ -275,7 +276,7 @@ public class SlimefunProfiler {
 
     @Nonnull
     protected Map<String, Long> getByPlugin() {
-        Map<String, Long> map = new HashMap<>();
+        Map<String, Long> map = Collections.synchronizedMap(new HashMap<>());
 
         for (Map.Entry<ProfiledBlock, Long> entry : timings.entrySet()) {
             map.merge(entry.getKey().getAddon().getName(), entry.getValue(), Long::sum);
@@ -286,7 +287,7 @@ public class SlimefunProfiler {
 
     @Nonnull
     protected Map<String, Long> getByChunk() {
-        Map<String, Long> map = new HashMap<>();
+        Map<String, Long> map = Collections.synchronizedMap(new HashMap<>());
 
         for (Map.Entry<ProfiledBlock, Long> entry : timings.entrySet()) {
             ProfiledBlock block = entry.getKey();

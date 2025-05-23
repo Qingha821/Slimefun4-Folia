@@ -2,6 +2,7 @@ package com.xzavier0722.mc.plugin.slimefun4.storage.util;
 
 import city.norain.slimefun4.api.menu.UniversalMenu;
 import city.norain.slimefun4.utils.TaskUtil;
+import com.molean.folia.adapter.SchedulerContext;
 import com.xzavier0722.mc.plugin.slimefun4.storage.callback.IAsyncReadCallback;
 import com.xzavier0722.mc.plugin.slimefun4.storage.controller.ADataContainer;
 import com.xzavier0722.mc.plugin.slimefun4.storage.controller.ASlimefunDataContainer;
@@ -9,6 +10,7 @@ import com.xzavier0722.mc.plugin.slimefun4.storage.controller.SlimefunBlockData;
 import com.xzavier0722.mc.plugin.slimefun4.storage.controller.SlimefunUniversalBlockData;
 import com.xzavier0722.mc.plugin.slimefun4.storage.controller.SlimefunUniversalData;
 import io.github.bakedlibs.dough.blocks.BlockPosition;
+import io.github.bakedlibs.dough.collections.Pair;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
 import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
 import java.util.Set;
@@ -20,6 +22,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import me.mrCookieSlime.Slimefun.api.inventory.BlockMenu;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Entity;
 
 /**
  * Utils to access the cached block data.
@@ -42,9 +45,11 @@ public class StorageCacheUtils {
 
     @ParametersAreNonnullByDefault
     public static boolean hasUniversalBlock(Location l) {
-        return TaskUtil.runSyncMethod(() -> Slimefun.getBlockDataService()
-                .getUniversalDataUUID(l.getBlock())
-                .isPresent());
+        return TaskUtil.runSyncMethod(
+                () -> Slimefun.getBlockDataService()
+                        .getUniversalDataUUID(l.getBlock())
+                        .isPresent(),
+                SchedulerContext.of(l));
     }
 
     @ParametersAreNonnullByDefault
@@ -291,7 +296,8 @@ public class StorageCacheUtils {
         });
     }
 
-    public static void executeAfterLoad(ASlimefunDataContainer data, Runnable execute, boolean runOnMainThread) {
+    public static void executeAfterLoad(
+            ASlimefunDataContainer data, Runnable execute, Pair<Boolean, Pair<Entity, Location>> runOnMainThread) {
         if (data instanceof SlimefunBlockData blockData) {
             executeAfterLoad(blockData, execute, runOnMainThread);
         } else if (data instanceof SlimefunUniversalData universalData) {
@@ -299,7 +305,7 @@ public class StorageCacheUtils {
         }
     }
 
-    public static void executeAfterLoad(SlimefunBlockData data, Runnable execute, boolean runOnMainThread) {
+    public static void executeAfterLoad(SlimefunBlockData data, Runnable execute, SchedulerContext context) {
         if (data.isDataLoaded()) {
             execute.run();
             return;
@@ -307,8 +313,8 @@ public class StorageCacheUtils {
 
         Slimefun.getDatabaseManager().getBlockDataController().loadBlockDataAsync(data, new IAsyncReadCallback<>() {
             @Override
-            public boolean runOnMainThread() {
-                return runOnMainThread;
+            public SchedulerContext getContext() {
+                return context;
             }
 
             @Override
@@ -318,7 +324,7 @@ public class StorageCacheUtils {
         });
     }
 
-    public static void executeAfterLoad(SlimefunUniversalData data, Runnable execute, boolean runOnMainThread) {
+    public static void executeAfterLoad(SlimefunUniversalData data, Runnable execute, SchedulerContext context) {
         if (data.isDataLoaded()) {
             execute.run();
             return;
@@ -326,8 +332,8 @@ public class StorageCacheUtils {
 
         Slimefun.getDatabaseManager().getBlockDataController().loadUniversalDataAsync(data, new IAsyncReadCallback<>() {
             @Override
-            public boolean runOnMainThread() {
-                return runOnMainThread;
+            public SchedulerContext getContext() {
+                return context;
             }
 
             @Override

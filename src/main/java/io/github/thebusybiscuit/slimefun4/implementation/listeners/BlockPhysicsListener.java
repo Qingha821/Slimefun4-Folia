@@ -1,5 +1,6 @@
 package io.github.thebusybiscuit.slimefun4.implementation.listeners;
 
+import com.molean.folia.adapter.SchedulerContext;
 import com.xzavier0722.mc.plugin.slimefun4.storage.callback.IAsyncReadCallback;
 import com.xzavier0722.mc.plugin.slimefun4.storage.controller.SlimefunBlockData;
 import com.xzavier0722.mc.plugin.slimefun4.storage.util.StorageCacheUtils;
@@ -81,8 +82,8 @@ public class BlockPhysicsListener implements Listener {
                                 blockData.setPendingRemove(true);
                                 controller.loadBlockDataAsync(blockData, new IAsyncReadCallback<>() {
                                     @Override
-                                    public boolean runOnMainThread() {
-                                        return true;
+                                    public SchedulerContext getContext() {
+                                        return SchedulerContext.of(block.getLocation());
                                     }
 
                                     @Override

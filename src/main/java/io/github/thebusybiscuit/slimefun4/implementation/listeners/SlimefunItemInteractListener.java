@@ -1,5 +1,7 @@
 package io.github.thebusybiscuit.slimefun4.implementation.listeners;
 
+import com.molean.folia.adapter.Folia;
+import com.molean.folia.adapter.SchedulerContext;
 import com.xzavier0722.mc.plugin.slimefun4.storage.callback.IAsyncReadCallback;
 import com.xzavier0722.mc.plugin.slimefun4.storage.controller.SlimefunBlockData;
 import com.xzavier0722.mc.plugin.slimefun4.storage.controller.SlimefunUniversalData;
@@ -18,7 +20,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 import me.mrCookieSlime.Slimefun.api.inventory.BlockMenuPreset;
 import me.mrCookieSlime.Slimefun.api.inventory.DirtyChestMenu;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -64,7 +65,7 @@ public class SlimefunItemInteractListener implements Listener {
 
             // Fire our custom Event
             PlayerRightClickEvent event = new PlayerRightClickEvent(e);
-            Bukkit.getPluginManager().callEvent(event);
+            Folia.getPluginManager().ce(event);
 
             boolean itemUsed = e.getHand() == EquipmentSlot.OFF_HAND;
 
@@ -164,8 +165,8 @@ public class SlimefunItemInteractListener implements Listener {
                                 .getBlockDataController()
                                 .loadUniversalDataAsync(uniData, new IAsyncReadCallback<>() {
                                     @Override
-                                    public boolean runOnMainThread() {
-                                        return true;
+                                    public SchedulerContext getContext() {
+                                        return SchedulerContext.of(p);
                                     }
 
                                     @Override
@@ -192,8 +193,8 @@ public class SlimefunItemInteractListener implements Listener {
                                 .getBlockDataController()
                                 .loadBlockDataAsync(blockData, new IAsyncReadCallback<>() {
                                     @Override
-                                    public boolean runOnMainThread() {
-                                        return true;
+                                    public SchedulerContext getContext() {
+                                        return SchedulerContext.of(p);
                                     }
 
                                     @Override

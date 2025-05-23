@@ -39,12 +39,12 @@ import io.github.bakedlibs.dough.collections.Pair;
 import java.sql.Connection;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class SqlUtils {
 
@@ -143,7 +143,7 @@ public class SqlUtils {
                 int columnCount = 0;
                 while (result.next()) {
                     if (re == null) {
-                        re = new ArrayList<>();
+                        re = new CopyOnWriteArrayList<>();
                         metaData = result.getMetaData();
                         columnCount = metaData.getColumnCount();
                     }

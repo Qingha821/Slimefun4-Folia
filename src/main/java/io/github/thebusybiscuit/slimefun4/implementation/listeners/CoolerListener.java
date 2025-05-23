@@ -1,5 +1,7 @@
 package io.github.thebusybiscuit.slimefun4.implementation.listeners;
 
+import com.molean.folia.adapter.Folia;
+import com.molean.folia.adapter.SchedulerContext;
 import io.github.thebusybiscuit.slimefun4.api.events.CoolerFeedPlayerEvent;
 import io.github.thebusybiscuit.slimefun4.api.player.PlayerBackpack;
 import io.github.thebusybiscuit.slimefun4.core.services.sounds.SoundEffect;
@@ -88,7 +90,7 @@ public class CoolerListener implements Listener {
      */
     private void takeJuiceFromCooler(@Nonnull Player p, @Nonnull ItemStack cooler) {
         if (PlayerBackpack.isOwnerOnline(cooler.getItemMeta())) {
-            PlayerBackpack.getAsync(cooler, backpack -> consumeJuice(p, cooler, backpack), true);
+            PlayerBackpack.getAsync(cooler, backpack -> consumeJuice(p, cooler, backpack), SchedulerContext.of(p));
         }
     }
 
@@ -111,7 +113,7 @@ public class CoolerListener implements Listener {
         if (slot >= 0) {
             ItemStack item = inv.getItem(slot);
             CoolerFeedPlayerEvent event = new CoolerFeedPlayerEvent(p, cooler, coolerItem, item);
-            plugin.getServer().getPluginManager().callEvent(event);
+            Folia.getPluginManager().ce(event);
 
             if (!event.isCancelled()) {
                 PotionMeta im = (PotionMeta) event.getConsumedItem().getItemMeta();

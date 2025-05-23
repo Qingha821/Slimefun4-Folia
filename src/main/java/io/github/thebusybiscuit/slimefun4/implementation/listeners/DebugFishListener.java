@@ -1,6 +1,8 @@
 package io.github.thebusybiscuit.slimefun4.implementation.listeners;
 
 import city.norain.slimefun4.utils.TaskUtil;
+import com.molean.folia.adapter.Folia;
+import com.molean.folia.adapter.SchedulerContext;
 import com.xzavier0722.mc.plugin.slimefun4.storage.callback.IAsyncReadCallback;
 import com.xzavier0722.mc.plugin.slimefun4.storage.controller.ASlimefunDataContainer;
 import com.xzavier0722.mc.plugin.slimefun4.storage.controller.SlimefunBlockData;
@@ -97,7 +99,7 @@ public class DebugFishListener implements Listener {
     private void onRightClick(Player p, Block b, BlockFace face) {
         if (p.isSneaking()) {
             // Fixes #2655 - Delaying the placement to prevent a new event from being fired
-            Slimefun.runSync(
+            Folia.runSync(
                     () -> {
                         Block block = b.getRelative(face);
                         block.setType(Material.PLAYER_HEAD);
@@ -105,6 +107,7 @@ public class DebugFishListener implements Listener {
                         PlayerHead.setSkin(block, HeadTexture.MISSING_TEXTURE.getAsSkin(), true);
                         SoundEffect.DEBUG_FISH_CLICK_SOUND.playFor(p);
                     },
+                    p,
                     2L);
             return;
         }
@@ -116,15 +119,17 @@ public class DebugFishListener implements Listener {
 
             try {
                 if (data == null) {
-                    TaskUtil.runSyncMethod(() -> Slimefun.getBlockDataService()
-                            .getUniversalDataUUID(b)
-                            .ifPresentOrElse(
-                                    (uuid) -> {
-                                        p.sendMessage(ChatColors.color(
-                                                "&c检测到损坏的通用数据物品, UUID: " + uuid + ", 请检查数据库对应数据是否存在!"));
-                                        sendVanillaInfo(p, b);
-                                    },
-                                    () -> sendVanillaInfo(p, b)));
+                    TaskUtil.runSyncMethod(
+                            () -> Slimefun.getBlockDataService()
+                                    .getUniversalDataUUID(b)
+                                    .ifPresentOrElse(
+                                            (uuid) -> {
+                                                p.sendMessage(ChatColors.color(
+                                                        "&c检测到损坏的通用数据物品, UUID: " + uuid + ", 请检查数据库对应数据是否存在!"));
+                                                sendVanillaInfo(p, b);
+                                            },
+                                            () -> sendVanillaInfo(p, b)),
+                            SchedulerContext.of(b.getLocation()));
 
                     return;
                 }
@@ -137,8 +142,8 @@ public class DebugFishListener implements Listener {
                                 .getBlockDataController()
                                 .loadBlockDataAsync(blockData, new IAsyncReadCallback<>() {
                                     @Override
-                                    public boolean runOnMainThread() {
-                                        return true;
+                                    public SchedulerContext getContext() {
+                                        return SchedulerContext.of(b.getLocation());
                                     }
 
                                     @Override
@@ -152,8 +157,8 @@ public class DebugFishListener implements Listener {
                                 .getBlockDataController()
                                 .loadUniversalDataAsync(universalData, new IAsyncReadCallback<>() {
                                     @Override
-                                    public boolean runOnMainThread() {
-                                        return true;
+                                    public SchedulerContext getContext() {
+                                        return SchedulerContext.of(b.getLocation());
                                     }
 
                                     @Override

@@ -1,6 +1,7 @@
 package com.xzavier0722.mc.plugin.slimefun4.storage.controller;
 
 import city.norain.slimefun4.utils.TaskTimer;
+import com.molean.folia.adapter.SchedulerContext;
 import com.xzavier0722.mc.plugin.slimefun4.storage.adapter.IDataSourceAdapter;
 import com.xzavier0722.mc.plugin.slimefun4.storage.callback.IAsyncReadCallback;
 import com.xzavier0722.mc.plugin.slimefun4.storage.common.DataType;
@@ -137,7 +138,8 @@ public abstract class ADataController {
     }
 
     protected void scheduleWriteTask(ScopeKey scopeKey, RecordKey key, RecordSet data, boolean forceScopeKey) {
-        scheduleWriteTask(scopeKey, key, () -> dataAdapter.setData(key, data), forceScopeKey);
+        Throwable throwable = new Throwable();
+        scheduleWriteTask(scopeKey, key, () -> dataAdapter.setData(key, data, throwable), forceScopeKey);
     }
 
     protected void scheduleWriteTask(ScopeKey scopeKey, RecordKey key, Runnable task, boolean forceScopeKey) {
@@ -190,12 +192,8 @@ public abstract class ADataController {
         } else {
             cb = () -> callback.onResult(result);
         }
-
-        if (callback.runOnMainThread()) {
-            Slimefun.runSync(cb);
-        } else {
-            callbackExecutor.submit(cb);
-        }
+        SchedulerContext context = callback.getContext();
+        context.runTask(Slimefun.instance(), cb);
     }
 
     protected void scheduleReadTask(Runnable run) {
@@ -217,7 +215,7 @@ public abstract class ADataController {
     }
 
     protected void setData(RecordKey key, RecordSet data) {
-        dataAdapter.setData(key, data);
+        dataAdapter.setData(key, data, new Throwable());
     }
 
     protected void deleteData(RecordKey key) {

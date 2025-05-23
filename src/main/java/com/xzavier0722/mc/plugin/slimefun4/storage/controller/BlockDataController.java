@@ -4,6 +4,8 @@ import city.norain.slimefun4.api.menu.UniversalMenu;
 import city.norain.slimefun4.api.menu.UniversalMenuPreset;
 import city.norain.slimefun4.utils.InventoryUtil;
 import city.norain.slimefun4.utils.TaskUtil;
+import com.molean.folia.adapter.Folia;
+import com.molean.folia.adapter.SchedulerContext;
 import com.xzavier0722.mc.plugin.slimefun4.storage.adapter.IDataSourceAdapter;
 import com.xzavier0722.mc.plugin.slimefun4.storage.callback.IAsyncReadCallback;
 import com.xzavier0722.mc.plugin.slimefun4.storage.common.DataScope;
@@ -23,7 +25,9 @@ import com.xzavier0722.mc.plugin.slimefun4.storage.util.LocationUtils;
 import io.github.bakedlibs.dough.collections.Pair;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
 import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -45,7 +49,6 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.scheduler.BukkitTask;
 
 /**
  * 方块数据控制器
@@ -87,7 +90,7 @@ public class BlockDataController extends ADataController {
     private boolean enableDelayedSaving = false;
 
     private int delayedSecond = 0;
-    private BukkitTask looperTask;
+    private ScheduledTask looperTask;
     /**
      * 区块数据加载模式
      * {@link ChunkDataLoadMode}
@@ -100,7 +103,7 @@ public class BlockDataController extends ADataController {
 
     BlockDataController() {
         super(DataType.BLOCK_STORAGE);
-        delayedWriteTasks = new HashMap<>();
+        delayedWriteTasks = Collections.synchronizedMap(new HashMap<>());
         loadedChunk = new ConcurrentHashMap<>();
         loadedUniversalData = new ConcurrentHashMap<>();
         invSnapshots = new ConcurrentHashMap<>();
@@ -130,8 +133,8 @@ public class BlockDataController extends ADataController {
             case LOAD_ON_STARTUP -> loadLoadedWorlds();
         }
 
-        Bukkit.getScheduler()
-                .runTaskLater(
+        Folia.getScheduler()
+                .runTaskLaterAsync(
                         Slimefun.instance(),
                         () -> {
                             initLoading = true;
@@ -145,8 +148,8 @@ public class BlockDataController extends ADataController {
      * 加载所有服务器已加载的世界中的数据
      */
     private void loadLoadedWorlds() {
-        Bukkit.getScheduler()
-                .runTaskLater(
+        Folia.getScheduler()
+                .runTaskLaterAsync(
                         Slimefun.instance(),
                         () -> {
                             initLoading = true;
@@ -162,14 +165,17 @@ public class BlockDataController extends ADataController {
      * 加载所有服务器已加载的世界区块中的数据
      */
     private void loadLoadedChunks() {
-        Bukkit.getScheduler()
-                .runTaskLater(
+        Folia.getScheduler()
+                .runTaskLaterAsync(
                         Slimefun.instance(),
                         () -> {
                             initLoading = true;
                             for (var world : Bukkit.getWorlds()) {
                                 for (var chunk : world.getLoadedChunks()) {
-                                    loadChunk(chunk, false);
+                                    Folia.getScheduler()
+                                            .runTask(Slimefun.instance(), world, chunk.getX(), chunk.getZ(), () -> {
+                                                loadChunk(chunk, false);
+                                            });
                                 }
                             }
                             initLoading = false;
@@ -191,7 +197,7 @@ public class BlockDataController extends ADataController {
         }
         enableDelayedSaving = true;
         this.delayedSecond = delayedSecond;
-        looperTask = Bukkit.getScheduler()
+        looperTask = Folia.getScheduler()
                 .runTaskTimerAsynchronously(
                         p,
                         new DelayedSavingLooperTask(
@@ -357,9 +363,11 @@ public class BlockDataController extends ADataController {
             getUniversalBlockDataFromCache(l)
                     .ifPresentOrElse(
                             data -> removeUniversalBlockData(data.getUUID()),
-                            () -> TaskUtil.runSyncMethod(() -> Slimefun.getBlockDataService()
-                                    .getUniversalDataUUID(l.getBlock())
-                                    .ifPresent(this::removeUniversalBlockData)));
+                            () -> TaskUtil.runSyncMethod(
+                                    () -> Slimefun.getBlockDataService()
+                                            .getUniversalDataUUID(l.getBlock())
+                                            .ifPresent(this::removeUniversalBlockData),
+                                    SchedulerContext.of(l)));
 
             return;
         }
@@ -694,7 +702,7 @@ public class BlockDataController extends ADataController {
 
         if (isNewChunk) {
             chunkData.setIsDataLoaded(true);
-            Bukkit.getPluginManager().callEvent(new SlimefunChunkDataLoadEvent(chunkData));
+            Folia.getPluginManager().ce(new SlimefunChunkDataLoadEvent(chunkData));
             return;
         }
 
@@ -728,7 +736,7 @@ public class BlockDataController extends ADataController {
             }
         });
 
-        Bukkit.getPluginManager().callEvent(new SlimefunChunkDataLoadEvent(chunkData));
+        Folia.getPluginManager().ce(new SlimefunChunkDataLoadEvent(chunkData));
     }
 
     public void loadWorld(World world) {
@@ -746,7 +754,13 @@ public class BlockDataController extends ADataController {
         key.addCondition(FieldKey.CHUNK, world.getName() + ";%");
         getData(key, true).forEach(data -> chunkKeys.add(data.get(FieldKey.CHUNK)));
 
-        chunkKeys.forEach(cKey -> loadChunk(LocationUtils.toChunk(world, cKey), false));
+        chunkKeys.forEach(cKey -> {
+            var loc = cKey.split(";")[1].split(":");
+            Folia.getScheduler()
+                    .runTask(Slimefun.instance(), world, Integer.parseInt(loc[0]), Integer.parseInt(loc[1]), () -> {
+                        loadChunk(LocationUtils.toChunk(world, cKey), false);
+                    });
+        });
         logger.log(
                 Level.INFO, "世界 {0} 数据加载完成, 耗时 {1}ms", new Object[] {worldName, (System.currentTimeMillis() - start)});
     }
@@ -1396,7 +1410,7 @@ public class BlockDataController extends ADataController {
 
             var universalData = createUniversalBlock(l, sfId);
 
-            Slimefun.runSync(
+            Folia.runSync(
                     () -> {
                         if (Slimefun.getBlockDataService()
                                 .isTileEntity(l.getBlock().getType())) {
@@ -1404,6 +1418,7 @@ public class BlockDataController extends ADataController {
                                     .updateUniversalDataUUID(l.getBlock(), String.valueOf(universalData.getUUID()));
                         }
                     },
+                    l,
                     10L);
 
             kvData.forEach(recordSet -> universalData.setData(

@@ -3,11 +3,12 @@ package me.mrCookieSlime.CSCoreLibPlugin.general.Inventory;
 import city.norain.slimefun4.holder.SlimefunInventoryHolder;
 import city.norain.slimefun4.utils.InventoryUtil;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItemStack;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -60,7 +61,7 @@ public class ChestMenu extends SlimefunInventoryHolder {
         this.clickable = false;
         this.emptyClickable = true;
         this.items = new CopyOnWriteArrayList<>();
-        this.handlers = new ConcurrentHashMap<>();
+        this.handlers = Collections.synchronizedMap(new HashMap<>());
 
         this.open = p -> {};
         this.close = p -> {};
