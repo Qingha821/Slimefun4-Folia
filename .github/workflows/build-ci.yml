@@ -1,7 +1,4 @@
-# This workflow will build a Java project with Maven
-# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
-
-name: Slimefun Builder
+name: Slimefun DEV
 
 on:
   push:
@@ -15,34 +12,23 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      packages: read
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
-          java-version: ${{ vars.JAVA_CI_VERSION }}
+          java-version: 21
           java-package: jdk
           architecture: x64
           cache: maven
-      - name: Codestyle Check
+      - name: Install local dependencies
+        run: mvn clean install -DskipTests --errors -B
+      - name: Codestyle check
         run: mvn -s .mvn/settings.xml -B spotless:check --errors
       - name: Build Slimefun
-        run: mvn -s .mvn/settings.xml -B package --errors
-      - uses: actions/upload-artifact@v4
-        name: Upload Beta artifact
+        run: mvn -s .mvn/settings.xml -B clean package --errors
+      - name: Upload Slimefun-4-Folia jar
+        uses: actions/upload-artifact@v4
         with:
-          name: Slimefun Beta Build
-          path: staging
-      - name: Automatic Releases
-        uses: marvinpinto/action-automatic-releases@v1.2.1
-        if: github.ref_name == 'master'
-        with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "exp"
-          prerelease: true
-          title: "Slimefun 自动构建版本"
-          files: |
-            target/slimefun-*.jar
+          name: Slimefun-4-Folia
+          path: target/*.jar
