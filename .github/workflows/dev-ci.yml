@@ -21,6 +21,8 @@ jobs:
           java-package: jdk
           architecture: x64
           cache: maven
+      - name: Install local dependencies
+        run: mvn clean install -DskipTests --errors -B
       - name: Codestyle check
         run: mvn -s .mvn/settings.xml -B spotless:check --errors
       - name: Build Slimefun
