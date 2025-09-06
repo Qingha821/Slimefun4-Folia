@@ -307,8 +307,6 @@
             <artifactId>FoliaAdapter</artifactId>
             <version>1.0-SNAPSHOT</version>
             <classifier>dev</classifier>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/libs/FoliaAdapter-1.0-SNAPSHOT.jar</systemPath>
         </dependency>
 
         <!-- Development dependencies -->
