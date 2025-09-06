@@ -336,8 +336,6 @@
             <groupId>io.github.baked-libs</groupId>
             <artifactId>dough-api</artifactId>
             <version>1.3.1-Folia</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/libs/dough-api-1.3.1-Folia.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>io.papermc</groupId>
