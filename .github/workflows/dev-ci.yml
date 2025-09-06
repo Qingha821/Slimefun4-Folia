@@ -25,7 +25,7 @@ jobs:
       - name: Install FoliaAdapter
         run: |
           mvn install:install-file \
-            -Dfile=ci-libs/FoliaAdapter-1.0-SNAPSHOT.jar \
+            -Dfile=libs/FoliaAdapter-1.0-SNAPSHOT.jar \
             -DgroupId=com.molean \
             -DartifactId=FoliaAdapter \
             -Dversion=1.0-SNAPSHOT \
@@ -34,7 +34,7 @@ jobs:
       - name: Install dough-api
         run: |
           mvn install:install-file \
-            -Dfile=ci-libs/dough-api-1.3.1-Folia.jar \
+            -Dfile=libs/dough-api-1.3.1-Folia.jar \
             -DgroupId=io.github.baked-libs \
             -DartifactId=dough-api \
             -Dversion=1.3.1-Folia \
